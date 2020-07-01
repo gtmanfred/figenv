@@ -1,6 +1,18 @@
 Figenv
 ======
 
+.. image:: https://github.com/gtmanfred/figenv/workflows/Tests/badge.svg
+    :target: https://github.com/gtmanfred/figenv
+
+.. image:: https://img.shields.io/codecov/c/github/gtmanfred/figenv
+    :target: https://codecov.io/gh/gtmanfred/figenv
+
+.. image:: https://img.shields.io/pypi/v/figenv
+    :target: https://pypi.org/project/figenv
+
+.. image:: https://img.shields.io/pypi/l/figenv
+    :target: http://www.apache.org/licenses/LICENSE-2.0
+
 Metaclass for handling configuration class objects using environment variables.
 
 If an environment variable is specified, the metaclass will pull the variable
