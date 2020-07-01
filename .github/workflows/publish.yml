@@ -1,8 +1,8 @@
-name: flask-rebar Release Publish
+name: Figenv Release Publish
 
 on:
-  release:
-    types: [created]
+  tags:
+    - v*
 
 jobs:
   build-n-publish:
@@ -20,7 +20,8 @@ jobs:
     - name: Build a binary wheel and a source tarball
       run: |
         python -m pep517.build .
-    - name: Publish distribution 📦 to PyPI
+    - name: Publish a Python distribution to PyPI
       uses: pypa/gh-action-pypi-publish@master
       with:
+        user: __token__
         password: ${{ secrets.pypi_password }}

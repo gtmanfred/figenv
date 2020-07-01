@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "figenv"
-version = "0.1.0"
+version = "0.1.1"
 description = "Metaclass for handling configuration class objects using environment variables"
 authors = ["Daniel Wallace <daniel@gtmanfred.com>"]
 license = "APACHE-2.0"
