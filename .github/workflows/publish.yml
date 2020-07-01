@@ -1,8 +1,9 @@
 name: Figenv Release Publish
 
 on:
-  tags:
-    - v*
+  push:
+    tags:
+      - v*
 
 jobs:
   build-n-publish:
