@@ -27,9 +27,7 @@ class MetaConfig(type):
         prefix = cls._dict.get('ENV_PREFIX', '')
         load_all = cls._dict.get('ENV_LOAD_ALL', False)
 
-        if not load_all and name not in cls._dict:
-            raise AttributeError(f"type object {cls.name} has no attribute '{name}'")
-        elif name not in cls._dict and prefix + name not in os.environ:
+        if (not load_all and name not in cls._dict) or (name not in cls._dict and prefix + name not in os.environ):
             raise AttributeError(f"type object {cls.name} has no attribute '{name}'")
 
         if prefix + name in os.environ:
