@@ -20,6 +20,9 @@ jobs:
       run: |
         pip install -U pip poetry
         poetry install
+    - name: Syntax check
+      run: |
+        make syntax
     - name: Unit tests
       run: |
         make tests
