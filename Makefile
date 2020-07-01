@@ -1,9 +1,9 @@
 tests:
-	coverage run -m test
+	poetry run coverage run -m test
 
 syntax:
-	black -S --diff .
+	poetry run black --diff .
 
 coverage:
-	coverage report
-	coverage xml
+	poetry run coverage report
+	poetry run coverage xml
