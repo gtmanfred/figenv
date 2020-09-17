@@ -114,6 +114,14 @@ class TestEnv(unittest.TestCase):
             self.assertEqual(TestConfiguration.IS_ZERO, 0)
             self.assertEqual(TestConfiguration.IS_NOT_INT, '12fa')
 
+    def test_parsing_version_string(self):
+        """A test to ensure that we properly parse integers"""
+        env = dict(VERSION_STRING='1.0.2')
+        with self.with_env(**env):
+            # DEV: Set `env_load_all=True` to keep from having to make default values for each variable
+            TestConfiguration = self._get_test_configuration(env_load_all=True)
+            self.assertEqual(TestConfiguration.VERSION_STRING, '1.0.2')
+
 
 if __name__ == '__main__':
     unittest.main()

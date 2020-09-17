@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "figenv"
-version = "0.1.5"
+version = "0.1.6"
 description = "Metaclass for handling configuration class objects using environment variables"
 readme = 'README.rst'
 authors = ["Daniel Wallace <daniel@gtmanfred.com>"]
@@ -23,7 +23,7 @@ python = "^3.6"
 
 [tool.poetry.dev-dependencies]
 coverage = "^5.1"
-pytest = "^5.4.3"
+pytest = "^6.0.0"
 codecov = "^2.1.7"
 black = "^19.10b0"
 
@@ -31,6 +31,36 @@ black = "^19.10b0"
 line-length = 119
 target-version = ['py36', 'py37', 'py38']
 skip-string-normalization = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra"
+log_cli_level = "critical"
+junit_family = "xunit2"
+testpaths = [
+    "test.py"
+]
+norecursedirs = [
+    ".git/",
+    ".tox"
+]
+
+[tool.coverage.run]
+branch = true
+source = [
+	"figenv.py"
+]
+omit = [
+    ".tox/*",
+    "tests/*",
+    "setup.py"
+]
+
+[tool.coverage.report]
+skip_covered = false
+
+[tool.coverage.xml]
+output = "coverage.xml"
 
 [build-system]
 requires = ["poetry>=1.0.0"]

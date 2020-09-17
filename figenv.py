@@ -39,7 +39,7 @@ class MetaConfig(type):
             return value
         elif value.lower() in ('true', 'false'):
             value = True if value.lower() == 'true' else False
-        elif '.' in value and ''.join(filter(lambda x: x != '.', value)).isdigit():
+        elif value.count('.') == 1 and ''.join(filter(lambda x: x != '.', value)).isdigit():
             value = float(value)
         elif value.isdigit():
             value = int(value)
