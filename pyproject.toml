@@ -48,7 +48,7 @@ norecursedirs = [
 [tool.coverage.run]
 branch = true
 source = [
-	"figenv.py"
+	"figenv"
 ]
 omit = [
     ".tox/*",
