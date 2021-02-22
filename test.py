@@ -122,6 +122,13 @@ class TestEnv(unittest.TestCase):
             TestConfiguration = self._get_test_configuration(env_load_all=True)
             self.assertEqual(TestConfiguration.VERSION_STRING, '1.0.2')
 
+    def test_classmethod_functions(self):
+        """A test to ensure that we properly parse integers"""
+        def func(cls):
+            return cls.DATA + '123'
+        TestConfiguration = self._get_test_configuration(DATA='blah', FUNC=func)
+        self.assertEqual(TestConfiguration.FUNC, 'blah123')
+
 
 if __name__ == '__main__':
     unittest.main()

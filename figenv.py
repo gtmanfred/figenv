@@ -35,6 +35,9 @@ class MetaConfig(type):
         else:
             value = cls._dict[name]
 
+        if callable(value):
+            value = value(cls)
+
         if not isinstance(value, str):
             return value
         elif value.lower() in ('true', 'false'):

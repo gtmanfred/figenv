@@ -55,20 +55,35 @@ The basic usecase is below.
 
 .. code-block:: python
 
-   import os
+    import os
 
-   import figenv
+    import figenv
 
-   class Config(metaclass=figenv.MetaConfig):
+    class Config(metaclass=figenv.MetaConfig):
 
-      ENV_LOAD_ALL = True
-      ENV_PREFIX = 'ROCKSTEADY_'
+        ENV_LOAD_ALL = True
+        ENV_PREFIX = 'ROCKSTEADY_'
 
-      BLAH = True
-      TIMEOUT = 5
+        BLAH = True
+        TIMEOUT = 5
+        POSTGRES_HOST = 'localhost'
+        POSTGRES_PORT = 5432
+        POSTGRES_USER = 'bebop'
+        POSTGRES_PASS = 'secret'
+        POSTGRES_DB = 'main'
+
+        def SQLALCHEMY_DATABASE_URI(cls):
+            return 'postgresql://{user}:{secret}@{host}:{port}/{database}?sslmode=require'.format(
+                user=cls.POSTGRES_USER,
+                secret=cls.POSTGRES_PASS,
+                host=cls.POSTGRES_HOST,
+                port=cls.POSTGRES_PORT,
+                database=cls.POSTGRES_DATABASE,
+            )
 
    assert Config.TIMEOUT == 5
    assert Config.BLAH is True
+   assert Config.SQLALCHEMY_DATABASE_URI == 'postgresql://bebop:secret@localhost:5432/public?sslmode=require'
    try:
        Config.WHAT
    except AttributeError:
@@ -78,8 +93,10 @@ The basic usecase is below.
        'ROCKSTEADY_BLAH': 'false',
        'ROCKSTEADY_TIMEOUT': '15',
        'ROCKSTEADY_WHAT': '2.9',
+       'ROCKSTEADY_SQLALCHEMY_DATABASE_URI': 'postgres://localhost:5432/db',
    })
 
    assert Config.TIMEOUT == 15
    assert Config.BLAH is False
    assert Config.WHAT == 2.9
+   assert Config.SQLALCHEMY_DATABASE_URI == 'postgres://localhost:5432/db'
