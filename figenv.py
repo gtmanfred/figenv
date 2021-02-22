@@ -2,6 +2,7 @@ import os
 
 
 class MetaConfig(type):
+
     def __init__(cls, name, bases, dict):
         super().__init__(name, bases, dict)
         cls.name = name
@@ -16,6 +17,9 @@ class MetaConfig(type):
         if name in ('name', '_dict'):
             return super().__getattribute__(name)
         raise AttributeError('Fallback to environment')
+
+    def __dir__(cls):
+        return list(cls._dict)
 
     def __getattr__(cls, name):
         '''

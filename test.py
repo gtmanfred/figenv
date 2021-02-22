@@ -128,6 +128,7 @@ class TestEnv(unittest.TestCase):
             return cls.DATA + '123'
         TestConfiguration = self._get_test_configuration(DATA='blah', FUNC=func)
         self.assertEqual(TestConfiguration.FUNC, 'blah123')
+        assert 'FUNC' in dir(TestConfiguration)
 
 
 if __name__ == '__main__':
