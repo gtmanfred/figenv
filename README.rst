@@ -78,12 +78,12 @@ The basic usecase is below.
                 secret=cls.POSTGRES_PASS,
                 host=cls.POSTGRES_HOST,
                 port=cls.POSTGRES_PORT,
-                database=cls.POSTGRES_DATABASE,
+                database=cls.POSTGRES_DB,
             )
 
    assert Config.TIMEOUT == 5
    assert Config.BLAH is True
-   assert Config.SQLALCHEMY_DATABASE_URI == 'postgresql://bebop:secret@localhost:5432/public?sslmode=require'
+   assert Config.SQLALCHEMY_DATABASE_URI == 'postgresql://bebop:secret@localhost:5432/main?sslmode=require'
    try:
        Config.WHAT
    except AttributeError:
