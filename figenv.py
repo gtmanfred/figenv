@@ -34,7 +34,7 @@ class MetaConfig(type):
     def __getitem__(cls, name, default=_MISSING):
         ret = getattr(cls, name, default)
         if ret is _MISSING:
-            raise KeyError('name')
+            raise KeyError(name)
         return ret
 
     def _to_bool(cls, value):
