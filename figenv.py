@@ -6,7 +6,12 @@ class MetaConfig(type):
     def __init__(cls, name, bases, dict):
         super().__init__(name, bases, dict)
         cls.name = name
-        cls._dict = dict
+        cls._dict = {}
+        for base in bases:
+            if not hasattr(base, '_dict'):
+                continue
+            cls._dict.update(base._dict)
+        cls._dict.update(dict)
 
     def __getattribute__(cls, name):
         '''
