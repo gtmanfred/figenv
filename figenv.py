@@ -1,8 +1,8 @@
+import json
 import os
 
 
 class MetaConfig(type):
-
     def __init__(cls, name, bases, dict):
         super().__init__(name, bases, dict)
         cls.name = name
@@ -14,12 +14,26 @@ class MetaConfig(type):
 
         Fall back to getattr for everything else
         '''
-        if name in ('name', '_dict'):
+        if name in ('__annotations__', 'name', '_dict', '_to_int', '_to_bool', '_to_float', '_to_dict'):
             return super().__getattribute__(name)
         raise AttributeError('Fallback to environment')
 
     def __dir__(cls):
         return list(cls._dict)
+
+    def _to_bool(cls, value):
+        if value.lower() in ('yes', 'true', '1'):
+            return True
+        return False
+
+    def _to_int(cls, value):
+        return int(value)
+
+    def _to_float(cls, value):
+        return float(value)
+
+    def _to_dict(cls, value):
+        return json.loads(value)
 
     def __getattr__(cls, name):
         '''
@@ -42,8 +56,15 @@ class MetaConfig(type):
         if callable(value):
             value = value(cls)
 
+        annotation = getattr(cls, '__annotations__', {}).get(name, None)
+        if annotation is not None:
+            annoname = getattr(annotation, '_name', getattr(annotation, '__name__', None))
+            coerce_func = getattr(annotation, '_coerce', getattr(cls, f'_to_{annoname.lower()}', None))
+
         if not isinstance(value, str):
             return value
+        elif annotation is not None and coerce_func is not None:
+            value = coerce_func(value)
         elif value.lower() in ('true', 'false'):
             value = True if value.lower() == 'true' else False
         elif value.count('.') == 1 and ''.join(filter(lambda x: x != '.', value)).isdigit():

@@ -1,5 +1,6 @@
 import contextlib
 import os
+import typing
 import unittest
 
 from figenv import MetaConfig
@@ -51,6 +52,29 @@ class TestEnv(unittest.TestCase):
         TestConfiguration = self._get_test_configuration(DEFAULT_SETTING='default_value', BOOL_SETTING=True)
         self.assertEqual(TestConfiguration.DEFAULT_SETTING, 'default_value')
         self.assertIs(TestConfiguration.BOOL_SETTING, True)
+
+    def test_coerce_settings(self):
+        """A test to ensure that annotations are used to coerce variables"""
+
+        class csv:
+            @classmethod
+            def _coerce(self, value):
+                return value.split(',')
+
+        class TestConfiguration(metaclass=MetaConfig):
+            DEFAULT_SETTING: csv = 'default,value'
+            BOOL_SETTING: bool = '1'
+            FALSE_SETTING: bool = '0'
+            INT_SETTING: int = '1093'
+            FLOAT_SETTING: float = '1.938'
+            DICT_SETTING: typing.Dict = '{"hello":"world"}'
+
+        self.assertEqual(TestConfiguration.DEFAULT_SETTING, ['default', 'value'])
+        self.assertIs(TestConfiguration.BOOL_SETTING, True)
+        self.assertIs(TestConfiguration.FALSE_SETTING, False)
+        self.assertEqual(TestConfiguration.INT_SETTING, 1093)
+        self.assertEqual(TestConfiguration.FLOAT_SETTING, 1.938)
+        self.assertEqual(TestConfiguration.DICT_SETTING, {'hello': 'world'})
 
     def test_override_from_env(self):
         """A test to ensure that an environment variable will override the default setting"""
@@ -124,8 +148,10 @@ class TestEnv(unittest.TestCase):
 
     def test_classmethod_functions(self):
         """A test to ensure that we properly parse integers"""
+
         def func(cls):
             return cls.DATA + '123'
+
         TestConfiguration = self._get_test_configuration(DATA='blah', FUNC=func)
         self.assertEqual(TestConfiguration.FUNC, 'blah123')
         assert 'FUNC' in dir(TestConfiguration)
