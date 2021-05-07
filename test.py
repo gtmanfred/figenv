@@ -5,6 +5,8 @@ import unittest
 
 from figenv import MetaConfig
 
+import pytest
+
 
 class TestEnv(unittest.TestCase):
     @contextlib.contextmanager
@@ -24,10 +26,12 @@ class TestEnv(unittest.TestCase):
             if key in os.environ:
                 del os.environ[key]
 
-    def _get_test_configuration(self, env_prefix='', env_load_all=False, **kwargs):
+    def _get_test_configuration(self, env_prefix='', env_load_all=False, bases=None, **kwargs):
         """Helper to define a new configuration class using our MetaConfig"""
+        if bases is None:
+            bases = (object,)
         return MetaConfig(
-            'TestConfiguration', (object,), dict(ENV_PREFIX=env_prefix, ENV_LOAD_ALL=env_load_all, **kwargs)
+            'TestConfiguration', bases, dict(ENV_PREFIX=env_prefix, ENV_LOAD_ALL=env_load_all, **kwargs)
         )
 
     def test_default_env_load_all(self):
@@ -75,6 +79,27 @@ class TestEnv(unittest.TestCase):
         self.assertEqual(TestConfiguration.INT_SETTING, 1093)
         self.assertEqual(TestConfiguration.FLOAT_SETTING, 1.938)
         self.assertEqual(TestConfiguration.DICT_SETTING, {'hello': 'world'})
+
+    def test_inherit_settings(self):
+        """A test inheriting settings"""
+        Parent = self._get_test_configuration(CLASS='parent', SECONDARY='second')
+        Child = self._get_test_configuration(bases=(Parent,), CLASS='child')
+        assert Child.CLASS == 'child'
+        assert Parent.CLASS == 'parent'
+        assert Child.SECONDARY == 'second'
+        assert Parent.SECONDARY == 'second'
+
+    def test_dict_update_settings(self):
+        """A configuration class can be iterable"""
+        def func(cls):
+            return 'hi'
+        test = dict()
+        settings = self._get_test_configuration(NAME='test', HELLO=func)
+        test.update(settings)
+        assert test['HELLO'] == 'hi'
+        assert test['NAME'] == 'test'
+        with pytest.raises(KeyError):
+            settings['UNSET']
 
     def test_override_from_env(self):
         """A test to ensure that an environment variable will override the default setting"""
