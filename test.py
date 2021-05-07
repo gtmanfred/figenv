@@ -30,9 +30,7 @@ class TestEnv(unittest.TestCase):
         """Helper to define a new configuration class using our MetaConfig"""
         if bases is None:
             bases = (object,)
-        return MetaConfig(
-            'TestConfiguration', bases, dict(ENV_PREFIX=env_prefix, ENV_LOAD_ALL=env_load_all, **kwargs)
-        )
+        return MetaConfig('TestConfiguration', bases, dict(ENV_PREFIX=env_prefix, ENV_LOAD_ALL=env_load_all, **kwargs))
 
     def test_default_env_load_all(self):
         """A test to ensure that we load all environment variables by default"""
@@ -91,8 +89,10 @@ class TestEnv(unittest.TestCase):
 
     def test_dict_update_settings(self):
         """A configuration class can be iterable"""
+
         def func(cls):
             return 'hi'
+
         test = dict()
         settings = self._get_test_configuration(NAME='test', HELLO=func)
         test.update(settings)
