@@ -14,7 +14,7 @@ class MetaConfig(type):
 
         Fall back to getattr for everything else
         '''
-        if name in ('__annotations__', 'name', '_dict', '_to_int', '_to_bool', '_to_float', '_to_dict'):
+        if name in ('name',) or name.startswith('_'):
             return super().__getattribute__(name)
         raise AttributeError('Fallback to environment')
 
