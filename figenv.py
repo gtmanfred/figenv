@@ -1,6 +1,8 @@
 import json
 import os
 
+_MISSING = object()
+
 
 class MetaConfig(type):
     def __init__(cls, name, bases, dict):
@@ -19,12 +21,21 @@ class MetaConfig(type):
 
         Fall back to getattr for everything else
         '''
-        if name in ('name',) or name.startswith('_'):
+        if name in ('name', 'keys') or name.startswith('_'):
             return super().__getattribute__(name)
         raise AttributeError('Fallback to environment')
 
+    def keys(cls):
+        return dir(cls)
+
     def __dir__(cls):
         return list(cls._dict)
+
+    def __getitem__(cls, name, default=_MISSING):
+        ret = getattr(cls, name, default)
+        if ret is _MISSING:
+            raise KeyError('name')
+        return ret
 
     def _to_bool(cls, value):
         if value.lower() in ('yes', 'true', '1'):
