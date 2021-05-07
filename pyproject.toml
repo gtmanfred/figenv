@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "figenv"
-version = "0.2.1"
+version = "0.3.0"
 description = "Metaclass for handling configuration class objects using environment variables"
 readme = 'README.rst'
 authors = ["Daniel Wallace <daniel@gtmanfred.com>"]
