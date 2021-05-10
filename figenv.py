@@ -16,11 +16,11 @@ class MetaConfig(type):
         cls._dict.update(dict)
 
     def __getattribute__(cls, name):
-        '''
+        """
         Return value of ``name`` and ``_dict``
 
         Fall back to getattr for everything else
-        '''
+        """
         if name in ('name', 'keys') or name.startswith('_'):
             return super().__getattribute__(name)
         raise AttributeError('Fallback to environment')
@@ -56,12 +56,12 @@ class MetaConfig(type):
         return json.loads(value)
 
     def __getattr__(cls, name):
-        '''
+        """
         Check if attribute is available on the class. If it is, then check
         the environment variables for that. If it is not in the environment
         variables, then return the default set on the class. Otherwise raise
         an AttributeError.
-        '''
+        """
         prefix = cls._dict.get('ENV_PREFIX', '')
         load_all = cls._dict.get('ENV_LOAD_ALL', False)
 
