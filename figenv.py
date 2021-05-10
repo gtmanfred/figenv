@@ -29,7 +29,11 @@ class MetaConfig(type):
         return dir(cls)
 
     def __dir__(cls):
-        return list(cls._dict)
+        return [key for key, _ in cls._dict.items() if key.isupper()]
+
+    def __iter__(cls):
+        for key in cls._dict.keys():
+            yield key, getattr(cls, key)
 
     def __getitem__(cls, name, default=_MISSING):
         ret = getattr(cls, name, default)

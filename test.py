@@ -37,7 +37,10 @@ class TestEnv(unittest.TestCase):
         # Configure an environment variable not defined on the configuration class
         with self.with_env(TEST_SETTING='true', DEFAULT_SETTING='set_by_env'):
             # Create our configuration object
-            TestConfiguration = self._get_test_configuration(env_load_all=True, DEFAULT_SETTING='set_in_class',)
+            TestConfiguration = self._get_test_configuration(
+                env_load_all=True,
+                DEFAULT_SETTING='set_in_class',
+            )
 
             self.assertEqual(TestConfiguration.DEFAULT_SETTING, 'set_by_env')
 
@@ -88,7 +91,7 @@ class TestEnv(unittest.TestCase):
         assert Parent.SECONDARY == 'second'
 
     def test_dict_update_settings(self):
-        """A configuration class can be iterable"""
+        """A configuration class can be updated in a dict"""
 
         def func(cls):
             return 'hi'
@@ -98,6 +101,20 @@ class TestEnv(unittest.TestCase):
         test.update(settings)
         assert test['HELLO'] == 'hi'
         assert test['NAME'] == 'test'
+        with pytest.raises(KeyError):
+            settings['UNSET']
+
+    def test_iterate_settings(self):
+        """A configuration class can be iterable"""
+
+        def func(cls):
+            return 'hi'
+
+        settings = self._get_test_configuration(NAME='test', HELLO=func)
+        test = {key: value for key, value in settings}
+        assert test['HELLO'] == 'hi'
+        assert test['NAME'] == 'test'
+
         with pytest.raises(KeyError):
             settings['UNSET']
 
@@ -133,7 +150,12 @@ class TestEnv(unittest.TestCase):
     def test_parsing_boolean(self):
         """A test to ensure that we properly parse booleans"""
         # DEV: We have to set the environment variable first, since they get loaded into the class on definition
-        env = dict(IS_TRUE='true', IS_NOT_TRUE='true-ish', IS_FALSE='FALSE', IS_WACKY_FALSE='FaLSe',)
+        env = dict(
+            IS_TRUE='true',
+            IS_NOT_TRUE='true-ish',
+            IS_FALSE='FALSE',
+            IS_WACKY_FALSE='FaLSe',
+        )
         with self.with_env(**env):
             # DEV: Set `env_load_all=True` to keep from having to make default values for each variable
             TestConfiguration = self._get_test_configuration(env_load_all=True)
@@ -144,7 +166,12 @@ class TestEnv(unittest.TestCase):
 
     def test_parsing_float(self):
         """A test to ensure that we properly parse floats"""
-        env = dict(IS_FLOAT='12.5', TRAILING_DOT='12.', LEADING_DOT='.12', IS_NOT_FLOAT='This is 6.5',)
+        env = dict(
+            IS_FLOAT='12.5',
+            TRAILING_DOT='12.',
+            LEADING_DOT='.12',
+            IS_NOT_FLOAT='This is 6.5',
+        )
         with self.with_env(**env):
             # DEV: Set `env_load_all=True` to keep from having to make default values for each variable
             TestConfiguration = self._get_test_configuration(env_load_all=True)
@@ -155,7 +182,11 @@ class TestEnv(unittest.TestCase):
 
     def test_parsing_int(self):
         """A test to ensure that we properly parse integers"""
-        env = dict(IS_INT='12', IS_ZERO='0', IS_NOT_INT='12fa',)
+        env = dict(
+            IS_INT='12',
+            IS_ZERO='0',
+            IS_NOT_INT='12fa',
+        )
         with self.with_env(**env):
             # DEV: Set `env_load_all=True` to keep from having to make default values for each variable
             TestConfiguration = self._get_test_configuration(env_load_all=True)
