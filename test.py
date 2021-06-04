@@ -5,8 +5,6 @@ import unittest
 
 from figenv import MetaConfig
 
-import pytest
-
 
 class TestEnv(unittest.TestCase):
     @contextlib.contextmanager
@@ -58,6 +56,12 @@ class TestEnv(unittest.TestCase):
         self.assertEqual(TestConfiguration.DEFAULT_SETTING, 'default_value')
         self.assertIs(TestConfiguration.BOOL_SETTING, True)
 
+    def test_invalid_setter(self):
+        """users should not be able to set variables using attributes"""
+        TestConfiguration = self._get_test_configuration(DEFAULT_SETTING='default_value', BOOL_SETTING=True)
+        with self.assertRaises(NotImplementedError):
+            TestConfiguration.DEFAULT_SETTING = 'hi'
+
     def test_coerce_settings(self):
         """A test to ensure that annotations are used to coerce variables"""
 
@@ -101,7 +105,7 @@ class TestEnv(unittest.TestCase):
         test.update(settings)
         assert test['HELLO'] == 'hi'
         assert test['NAME'] == 'test'
-        with pytest.raises(KeyError):
+        with self.assertRaises(KeyError):
             settings['UNSET']
 
     def test_iterate_settings(self):
@@ -115,7 +119,7 @@ class TestEnv(unittest.TestCase):
         assert test['HELLO'] == 'hi'
         assert test['NAME'] == 'test'
 
-        with pytest.raises(KeyError):
+        with self.assertRaises(KeyError):
             settings['UNSET']
 
     def test_override_from_env(self):

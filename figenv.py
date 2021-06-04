@@ -4,6 +4,10 @@ import os
 _MISSING = object()
 
 
+def _check_special_names(name):
+    return name in ('name', 'keys') or name.startswith('_')
+
+
 class MetaConfig(type):
     def __init__(cls, name, bases, dict):
         super().__init__(name, bases, dict)
@@ -21,7 +25,7 @@ class MetaConfig(type):
 
         Fall back to getattr for everything else
         """
-        if name in ('name', 'keys') or name.startswith('_'):
+        if _check_special_names(name):
             return super().__getattribute__(name)
         raise AttributeError('Fallback to environment')
 
@@ -54,6 +58,15 @@ class MetaConfig(type):
 
     def _to_dict(cls, value):
         return json.loads(value)
+
+    def __setattr__(cls, name, value):
+        """
+        Do not allow setting attributes.  Variables should be set at creation
+        time and overwritten with environment variables in the shell
+        """
+        if not _check_special_names(name):
+            raise NotImplementedError(f'{cls} is a Immutable Type. Override using Environment Variables')
+        return super().__setattr__(name, value)
 
     def __getattr__(cls, name):
         """
