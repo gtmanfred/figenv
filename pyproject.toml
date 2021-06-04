@@ -3,19 +3,6 @@ line-length = 119
 target-version = ['py36', 'py37', 'py38']
 skip-string-normalization = true
 
-[tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "-ra"
-log_cli_level = "critical"
-junit_family = "xunit2"
-testpaths = [
-    "test.py"
-]
-norecursedirs = [
-    ".git/",
-    ".tox"
-]
-
 [tool.coverage.run]
 branch = true
 source = [

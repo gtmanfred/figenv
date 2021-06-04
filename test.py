@@ -5,8 +5,6 @@ import unittest
 
 from figenv import MetaConfig
 
-import pytest
-
 
 class TestEnv(unittest.TestCase):
     @contextlib.contextmanager
@@ -107,7 +105,7 @@ class TestEnv(unittest.TestCase):
         test.update(settings)
         assert test['HELLO'] == 'hi'
         assert test['NAME'] == 'test'
-        with pytest.raises(KeyError):
+        with self.assertRaises(KeyError):
             settings['UNSET']
 
     def test_iterate_settings(self):
@@ -121,7 +119,7 @@ class TestEnv(unittest.TestCase):
         assert test['HELLO'] == 'hi'
         assert test['NAME'] == 'test'
 
-        with pytest.raises(KeyError):
+        with self.assertRaises(KeyError):
             settings['UNSET']
 
     def test_override_from_env(self):
