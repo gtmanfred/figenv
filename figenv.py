@@ -8,6 +8,12 @@ def _check_special_names(name):
     return name in ('name', 'keys') or name.startswith('_')
 
 
+def strict(f):
+    """Decorator to disable automatic override of dynamic configuration via environmental variable"""
+    f._strict = True
+    return f
+
+
 class MetaConfig(type):
     def __init__(cls, name, bases, dict):
         super().__init__(name, bases, dict)
@@ -81,13 +87,21 @@ class MetaConfig(type):
         if (not load_all and name not in cls._dict) or (name not in cls._dict and prefix + name not in os.environ):
             raise AttributeError(f"type object {cls.name} has no attribute '{name}'")
 
-        if prefix + name in os.environ:
+        value = cls._dict.get(name, _MISSING)
+
+        override_via_environment = True
+        if callable(value):
+            if hasattr(value, "_strict") and value._strict:
+                override_via_environment = False
+
+        if override_via_environment and prefix + name in os.environ:
             value = os.environ[prefix + name]
-        else:
-            value = cls._dict[name]
 
         if callable(value):
             value = value(cls)
+
+        if value is _MISSING:
+            raise AttributeError(f"type object {cls.name} has no attribute '{name}'")
 
         annotation = getattr(cls, '__annotations__', {}).get(name, None)
         if annotation is not None:
