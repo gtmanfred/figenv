@@ -90,8 +90,7 @@ class MetaConfig(type):
         value = cls._dict.get(name, _MISSING)
 
         override_via_environment = True
-        if callable(value):
-            if hasattr(value, "_strict") and value._strict:
+        if callable(value) and getattr(value, "_strict", False):
                 override_via_environment = False
 
         if override_via_environment and prefix + name in os.environ:
