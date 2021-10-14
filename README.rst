@@ -16,6 +16,9 @@ Figenv
 .. image:: https://img.shields.io/pypi/dm/figenv
     :target: https://pypi.org/project/figenv/
 
+.. image:: https://readthedocs.org/projects/figenv/badge?version=latest&style=plastic
+    :target: https://figenv.readthedocs.org/
+
 Metaclass for handling configuration class objects using environment variables.
 
 If an environment variable is specified, the metaclass will pull the variable
