@@ -5,3 +5,4 @@ build
 coverage.xml
 .coverage
 htmlcov
+docs/_html

@@ -1,3 +1,13 @@
+"""
+figenv is a metaclass that can transform config objects to be able to pull
+updates from environment variables.
+
+.. code-block:: python
+
+    class Config(metaclass=MetaConfig):
+        USERNAME = 'fake'
+        DEBUG = False
+"""
 import json
 import os
 
