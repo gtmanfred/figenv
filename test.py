@@ -3,7 +3,7 @@ import os
 import typing
 import unittest
 
-from figenv import MetaConfig
+from figenv import MetaConfig, strict
 
 
 class TestEnv(unittest.TestCase):
@@ -215,6 +215,29 @@ class TestEnv(unittest.TestCase):
         TestConfiguration = self._get_test_configuration(DATA='blah', FUNC=func)
         self.assertEqual(TestConfiguration.FUNC, 'blah123')
         assert 'FUNC' in dir(TestConfiguration)
+
+    def test_override_from_env_functions(self):
+        """A test to ensure that functions are overridden with environment values"""
+
+        def func(cls):
+            return cls.DATA + ' world'
+
+        with self.with_env(GREETING='hola mundo'):
+            TestConfiguration = self._get_test_configuration(DATA='hello', GREETING=func)
+            assert 'GREETING' in dir(TestConfiguration)
+            self.assertEqual(TestConfiguration.GREETING, 'hola mundo')
+
+    def test_strict_functions(self):
+        """A test to ensure that strict functions are NOT overridden with environment values"""
+
+        @strict
+        def func(cls):
+            return cls.DATA + ' world'
+
+        with self.with_env(GREETING='hola mundo'):
+            TestConfiguration = self._get_test_configuration(DATA='hello', GREETING=func)
+            assert 'GREETING' in dir(TestConfiguration)
+            self.assertEqual(TestConfiguration.GREETING, 'hello world')
 
 
 if __name__ == '__main__':
