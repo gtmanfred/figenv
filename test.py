@@ -3,6 +3,8 @@ import os
 import typing
 import unittest
 
+import xmlrunner
+
 from figenv import MetaConfig, strict
 
 
@@ -241,4 +243,5 @@ class TestEnv(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    with open('xunit.xml', 'wb') as fh_:
+        unittest.main(testRunner=xmlrunner.XMLTestRunner(output=fh_))
