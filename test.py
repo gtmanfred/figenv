@@ -281,6 +281,24 @@ class TestEnv(unittest.TestCase):
             self.assertEqual(TestConfiguration.DEFINED_ANNOTATED_STRING_INT_STRING, "69")
             self.assertEqual(TestConfiguration.DEFINED_UNANNOTATED, 420)
 
+    def test_parsing_dict(self):
+        """A test to ensure we properly parse dictionaries"""
+
+        class TestingConfig(metaclass=MetaConfig):
+            MY_MAPPING: dict = None
+
+        with self.with_env(MY_MAPPING='{"int": 1, "bool": true, "float": 7.4, "string": "hello"}'):
+            self.assertDictEqual(TestingConfig.MY_MAPPING, {"int": 1, "bool": True, "float": 7.4, "string": "hello"})
+
+    def test_parsing_list(self):
+        """A test to ensure we properly parse lists"""
+
+        class TestingConfig(metaclass=MetaConfig):
+            MY_LIST: list = None
+
+        with self.with_env(MY_LIST='[true, 1, 7.4, "hello", "\\"Never Give Up, Never Surrender\\""]'):
+            self.assertListEqual(TestingConfig.MY_LIST, [True, 1, 7.4, "hello", "\"Never Give Up, Never Surrender\""])
+
     def test_parsing_version_string(self):
         """A test to ensure that we properly parse version strings as strings"""
         env = dict(VERSION_STRING='1.0.2')
