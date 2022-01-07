@@ -8,6 +8,7 @@ updates from environment variables.
         USERNAME = 'fake'
         DEBUG = False
 """
+from typing import Callable, Any
 import json
 import os
 
@@ -61,6 +62,9 @@ class MetaConfig(type):
             raise KeyError(name)
         return ret
 
+    def _to_str(cls, value):
+        return str(value)
+
     def _to_bool(cls, value):
         if value.lower() in ('yes', 'true', '1'):
             return True
@@ -74,6 +78,26 @@ class MetaConfig(type):
 
     def _to_dict(cls, value):
         return json.loads(value)
+
+    def _get_coerce_function(cls, value, annotation=None):
+        if not isinstance(value, str):
+            return None
+
+        if annotation is not None:
+            annoname = getattr(annotation, '_name', getattr(annotation, '__name__', None))
+            coerce_func = getattr(annotation, '_coerce', getattr(cls, f'_to_{annoname.lower()}', None))
+            # DEV: It may be more user friendly to raise an error here if we could not find a coercion method
+        else:
+            # Guess the correct coerce function
+            if value.lower() in ('true', 'false'):
+                coerce_func = cls._to_bool
+            elif value.count('.') == 1 and ''.join(filter(lambda x: x not in ['.', '-'], value)).isdigit():
+                coerce_func = cls._to_float
+            elif value.lstrip('-').isdigit():
+                coerce_func = cls._to_int
+            else:
+                coerce_func = None
+        return coerce_func
 
     def __setattr__(cls, name, value):
         """
@@ -110,19 +134,9 @@ class MetaConfig(type):
             value = value(cls)
 
         annotation = getattr(cls, '__annotations__', {}).get(name, None)
-        if annotation is not None:
-            annoname = getattr(annotation, '_name', getattr(annotation, '__name__', None))
-            coerce_func = getattr(annotation, '_coerce', getattr(cls, f'_to_{annoname.lower()}', None))
+        coerce_func: Callable[[str], Any] = cls._get_coerce_function(value, annotation)
 
-        if not isinstance(value, str):
-            return value
-        elif annotation is not None and coerce_func is not None:
+        if coerce_func is not None:
             value = coerce_func(value)
-        elif value.lower() in ('true', 'false'):
-            value = True if value.lower() == 'true' else False
-        elif value.count('.') == 1 and ''.join(filter(lambda x: x not in ['.', '-'], value)).isdigit():
-            value = float(value)
-        elif value.lstrip('-').isdigit():
-            value = int(value)
 
         return value
