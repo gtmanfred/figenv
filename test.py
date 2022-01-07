@@ -173,6 +173,10 @@ class TestEnv(unittest.TestCase):
             ENV_BOOL_CAP='True',
             ENV_BOOL_WACKY='TrUe',
             ENV_NOT_BOOL="true-ish",
+            DEFINED_ANNOTATED_BOOL_BOOL_STRING="true",
+            DEFINED_ANNOTATED_BOOL_INT_STRING="1",
+            DEFINED_ANNOTATED_STRING_BOOL_STRING="true",
+            DEFINED_UNANNOTATED="True",
         )
         with self.with_env(**truth_env):
             self.assertEqual(TestConfiguration.ENV_BOOL_LOWER, True)
@@ -180,6 +184,10 @@ class TestEnv(unittest.TestCase):
             self.assertEqual(TestConfiguration.ENV_BOOL_CAP, True)
             self.assertEqual(TestConfiguration.ENV_BOOL_WACKY, True)
             self.assertEqual(TestConfiguration.ENV_NOT_BOOL, 'true-ish')
+            self.assertEqual(TestConfiguration.DEFINED_ANNOTATED_BOOL_BOOL_STRING, True)
+            self.assertEqual(TestConfiguration.DEFINED_ANNOTATED_BOOL_INT_STRING, True)
+            self.assertEqual(TestConfiguration.DEFINED_ANNOTATED_STRING_BOOL_STRING, "true")
+            self.assertEqual(TestConfiguration.DEFINED_UNANNOTATED, True)
 
         false_env = dict(
             ENV_BOOL_LOWER='false',
@@ -187,6 +195,10 @@ class TestEnv(unittest.TestCase):
             ENV_BOOL_CAP='False',
             ENV_BOOL_WACKY='FaLSe',
             ENV_NOT_BOOL="falsish",
+            DEFINED_ANNOTATED_BOOL_BOOL_STRING="false",
+            DEFINED_ANNOTATED_BOOL_INT_STRING="0",
+            DEFINED_ANNOTATED_STRING_BOOL_STRING="False",
+            DEFINED_UNANNOTATED="False",
         )
 
         with self.with_env(**false_env):
@@ -195,6 +207,10 @@ class TestEnv(unittest.TestCase):
             self.assertEqual(TestConfiguration.ENV_BOOL_CAP, False)
             self.assertEqual(TestConfiguration.ENV_BOOL_WACKY, False)
             self.assertEqual(TestConfiguration.ENV_NOT_BOOL, 'falsish')
+            self.assertEqual(TestConfiguration.DEFINED_ANNOTATED_BOOL_BOOL_STRING, False)
+            self.assertEqual(TestConfiguration.DEFINED_ANNOTATED_BOOL_INT_STRING, False)
+            self.assertEqual(TestConfiguration.DEFINED_ANNOTATED_STRING_BOOL_STRING, "False")
+            self.assertEqual(TestConfiguration.DEFINED_UNANNOTATED, False)
 
     def test_parsing_float(self):
         """A test to ensure that we properly parse floats"""
@@ -217,6 +233,10 @@ class TestEnv(unittest.TestCase):
             ENV_TRAILING_DOT_FLOAT='12.',
             ENV_LEADING_DOT_FLOAT='.12',
             ENV_NOT_FLOAT='This is 6.5',
+            DEFINED_ANNOTATED_FLOAT_FLOAT_STRING="67.54",
+            DEFINED_ANNOTATED_FLOAT_INT_STRING="32",
+            DEFINED_ANNOTATED_STRING_FLOAT_STRING="107.3",
+            DEFINED_UNANNOTATED="6.75",
         )
         with self.with_env(**env):
             self.assertEqual(TestConfiguration.ENV_FLOAT, 12.5)
@@ -225,6 +245,10 @@ class TestEnv(unittest.TestCase):
             self.assertEqual(TestConfiguration.ENV_TRAILING_DOT_FLOAT, 12.0)
             self.assertEqual(TestConfiguration.ENV_LEADING_DOT_FLOAT, 0.12)
             self.assertEqual(TestConfiguration.ENV_NOT_FLOAT, 'This is 6.5')
+            self.assertEqual(TestConfiguration.DEFINED_ANNOTATED_FLOAT_FLOAT_STRING, 67.54)
+            self.assertEqual(TestConfiguration.DEFINED_ANNOTATED_FLOAT_INT_STRING, 32.0)
+            self.assertEqual(TestConfiguration.DEFINED_ANNOTATED_STRING_FLOAT_STRING, "107.3")
+            self.assertEqual(TestConfiguration.DEFINED_UNANNOTATED, 6.75)
 
     def test_parsing_int(self):
         """A test to ensure that we properly parse integers"""
@@ -234,7 +258,6 @@ class TestEnv(unittest.TestCase):
             ENV_LOAD_ALL = True
             # Annotation should force type coercion to float
             DEFINED_ANNOTATED_INT_INT_STRING: int = 0
-            DEFINED_ANNOTATED_INT_FLOAT_STRING: int = 0
             # Annotation should force type coercion to str
             DEFINED_ANNOTATED_STRING_INT_STRING: str = "0"
             # Type coercion should default based on value (Same behaviour as undefined values loaded from env)
@@ -245,12 +268,18 @@ class TestEnv(unittest.TestCase):
             ENV_ZERO_INT='0',
             ENV_NEGATIVE_INT="-12",
             ENV_NOT_INT='12fa',
+            DEFINED_ANNOTATED_INT_INT_STRING="42",
+            DEFINED_ANNOTATED_STRING_INT_STRING="69",
+            DEFINED_UNANNOTATED="420",
         )
         with self.with_env(**env):
             self.assertEqual(TestConfiguration.ENV_INT, 12)
             self.assertEqual(TestConfiguration.ENV_ZERO_INT, 0)
             self.assertEqual(TestConfiguration.ENV_NEGATIVE_INT, -12)
             self.assertEqual(TestConfiguration.ENV_NOT_INT, '12fa')
+            self.assertEqual(TestConfiguration.DEFINED_ANNOTATED_INT_INT_STRING, 42)
+            self.assertEqual(TestConfiguration.DEFINED_ANNOTATED_STRING_INT_STRING, "69")
+            self.assertEqual(TestConfiguration.DEFINED_UNANNOTATED, 420)
 
     def test_parsing_version_string(self):
         """A test to ensure that we properly parse version strings as strings"""
@@ -259,6 +288,38 @@ class TestEnv(unittest.TestCase):
             # DEV: Set `env_load_all=True` to keep from having to make default values for each variable
             TestConfiguration = self._get_test_configuration(env_load_all=True)
             self.assertEqual(TestConfiguration.VERSION_STRING, '1.0.2')
+
+    def test_parsing_custom_type_via_coerce(self):
+        class CSV:
+            @classmethod
+            def _coerce(cls, value: str):
+                if not value.startswith("[") and value.endswith("]"):
+                    raise ValueError(f"Invalid literal for csv: '{value}")
+                return value.strip("[]").split(",")
+
+        class TestingConfig(metaclass=MetaConfig):
+            MY_CSV_LIST: CSV = None
+
+        with self.with_env(MY_CSV_LIST="[A,B,C]"):
+            self.assertEqual(TestingConfig.MY_CSV_LIST, ["A", "B", "C"])
+
+    def test_parsing_custom_type_via_to_x(self):
+        class Role:
+            ADMIN = object()
+            USER = object()
+
+        class TestingConfig(metaclass=MetaConfig):
+            MY_ROLE: Role = Role.USER
+
+            @staticmethod
+            def _to_role(value: str):
+                if value == "ADMIN":
+                    return Role.ADMIN
+                else:
+                    return Role.USER
+
+        with self.with_env(MY_ROLE="ADMIN"):
+            self.assertEqual(TestingConfig.MY_ROLE, Role.ADMIN)
 
     def test_classmethod_functions(self):
         """A test to ensure that we properly parse integers"""
