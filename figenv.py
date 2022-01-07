@@ -143,7 +143,7 @@ class MetaConfig(type):
         if override_via_environment and prefix + name in os.environ:
             value = os.environ[prefix + name]
 
-        if value == _MISSING:
+        if value is _MISSING:
             # Configuration with no default and no value in the environment
             raise MissingConfigurationException(name)
 
