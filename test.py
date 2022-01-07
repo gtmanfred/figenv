@@ -5,7 +5,7 @@ import unittest
 
 import xmlrunner
 
-from figenv import MetaConfig, strict
+from figenv import MetaConfig, strict, MissingConfigurationException, _MISSING
 
 
 class TestEnv(unittest.TestCase):
@@ -54,9 +54,17 @@ class TestEnv(unittest.TestCase):
 
     def test_default_settings(self):
         """A test to ensure that if no environment variable is set, we get the default value that is set"""
-        TestConfiguration = self._get_test_configuration(DEFAULT_SETTING='default_value', BOOL_SETTING=True)
+        TestConfiguration = self._get_test_configuration(
+            DEFAULT_SETTING='default_value',
+            BOOL_SETTING=True,
+            __annotations__={"DEFAULT_SETTING": str, "NO_DEFAULT_SETTING": str, "BOOL_SETTING": bool},
+        )
         self.assertEqual(TestConfiguration.DEFAULT_SETTING, 'default_value')
         self.assertIs(TestConfiguration.BOOL_SETTING, True)
+        with self.assertRaises(RuntimeError):
+            TestConfiguration.NO_DEFAULT_SETTING
+        with self.assertRaises(RuntimeError):
+            TestConfiguration["NO_DEFAULT_SETTING"]
 
     def test_invalid_setter(self):
         """users should not be able to set variables using attributes"""
@@ -79,6 +87,7 @@ class TestEnv(unittest.TestCase):
             INT_SETTING: int = '1093'
             FLOAT_SETTING: float = '1.938'
             DICT_SETTING: typing.Dict = '{"hello":"world"}'
+            NO_DEFAULT_SETTING: int
 
         self.assertEqual(TestConfiguration.DEFAULT_SETTING, ['default', 'value'])
         self.assertIs(TestConfiguration.BOOL_SETTING, True)
@@ -86,6 +95,8 @@ class TestEnv(unittest.TestCase):
         self.assertEqual(TestConfiguration.INT_SETTING, 1093)
         self.assertEqual(TestConfiguration.FLOAT_SETTING, 1.938)
         self.assertEqual(TestConfiguration.DICT_SETTING, {'hello': 'world'})
+        with self.with_env(NO_DEFAULT_SETTING="200"):
+            self.assertEqual(TestConfiguration.NO_DEFAULT_SETTING, 200)
 
     def test_inherit_settings(self):
         """A test inheriting settings"""
@@ -103,10 +114,14 @@ class TestEnv(unittest.TestCase):
             return 'hi'
 
         test = dict()
-        settings = self._get_test_configuration(NAME='test', HELLO=func)
-        test.update(settings)
+        settings = self._get_test_configuration(
+            NAME='test', HELLO=func, __annotations__={'NAME': str, 'NO_DEFAULT': str}
+        )
+        with self.with_env(NO_DEFAULT='hello'):
+            test.update(settings)
         assert test['HELLO'] == 'hi'
         assert test['NAME'] == 'test'
+        assert test['NO_DEFAULT'] == 'hello'
         with self.assertRaises(KeyError):
             settings['UNSET']
 
@@ -371,6 +386,24 @@ class TestEnv(unittest.TestCase):
             TestConfiguration = self._get_test_configuration(DATA='hello', GREETING=func)
             assert 'GREETING' in dir(TestConfiguration)
             self.assertEqual(TestConfiguration.GREETING, 'hello world')
+
+
+class TestMissing(unittest.TestCase):
+    """Pointless tests for code coverage"""
+
+    def test_representation(self):
+        value = _MISSING
+        self.assertEqual(str(value), "<MISSING CONFIGURATION>")
+
+    def test_exception_default(self):
+        exception = MissingConfigurationException("MY_VALUE")
+        self.assertEqual(exception.name, "MY_VALUE")
+        self.assertEqual(str(exception), "Configuration 'MY_VALUE' is not present in environment")
+
+    def test_exception_custom_message(self):
+        exception = MissingConfigurationException("MY_VALUE", "Invalid Configuration! Please provide MY_VALUE.")
+        self.assertEqual(exception.name, "MY_VALUE")
+        self.assertEqual(str(exception), "Invalid Configuration! Please provide MY_VALUE.")
 
 
 if __name__ == '__main__':
