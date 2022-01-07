@@ -14,6 +14,14 @@ import os
 _MISSING = type("MISSING", (object,), {"__repr__": lambda self: "<MISSING CONFIGURATION>"})()
 
 
+class MissingConfigurationException(RuntimeError):
+    def __init__(self, name, message=None):
+        self.name = name
+        if not message:
+            message = f"Configuration '{self.name}' is not present in environment"
+        super().__init__(message)
+
+
 def _check_special_names(name):
     return name in ('name', 'keys') or name.startswith('_')
 
@@ -110,7 +118,7 @@ class MetaConfig(type):
 
         if value == _MISSING:
             # Configuration with no default and no value in the environment
-            raise RuntimeError(f"Configuration '{name}' is not present in environment and has no default")
+            raise MissingConfigurationException(name)
 
         if callable(value):
             value = value(cls)
