@@ -155,53 +155,105 @@ class TestEnv(unittest.TestCase):
 
     def test_parsing_boolean(self):
         """A test to ensure that we properly parse booleans"""
-        # DEV: We have to set the environment variable first, since they get loaded into the class on definition
-        env = dict(
-            IS_TRUE='true',
-            IS_NOT_TRUE='true-ish',
-            IS_FALSE='FALSE',
-            IS_WACKY_FALSE='FaLSe',
-        )
-        with self.with_env(**env):
+
+        class TestConfiguration(metaclass=MetaConfig):
             # DEV: Set `env_load_all=True` to keep from having to make default values for each variable
-            TestConfiguration = self._get_test_configuration(env_load_all=True)
-            self.assertEqual(TestConfiguration.IS_TRUE, True)
-            self.assertEqual(TestConfiguration.IS_NOT_TRUE, 'true-ish')
-            self.assertEqual(TestConfiguration.IS_FALSE, False)
-            self.assertEqual(TestConfiguration.IS_WACKY_FALSE, False)
+            ENV_LOAD_ALL = True
+            # Annotation should force type coercion to bool
+            DEFINED_ANNOTATED_BOOL_BOOL_STRING: bool = False
+            DEFINED_ANNOTATED_BOOL_INT_STRING: bool = False
+            # Annotation should force type coercion to str
+            DEFINED_ANNOTATED_STRING_BOOL_STRING: str = "False"
+            # Type coercion should default based on value (Same behaviour as undefined values loaded from env)
+            DEFINED_UNANNOTATED = None
+
+        truth_env = dict(
+            ENV_BOOL_LOWER='true',
+            ENV_BOOL_UPPER='TRUE',
+            ENV_BOOL_CAP='True',
+            ENV_BOOL_WACKY='TrUe',
+            ENV_NOT_BOOL="true-ish",
+        )
+        with self.with_env(**truth_env):
+            self.assertEqual(TestConfiguration.ENV_BOOL_LOWER, True)
+            self.assertEqual(TestConfiguration.ENV_BOOL_UPPER, True)
+            self.assertEqual(TestConfiguration.ENV_BOOL_CAP, True)
+            self.assertEqual(TestConfiguration.ENV_BOOL_WACKY, True)
+            self.assertEqual(TestConfiguration.ENV_NOT_BOOL, 'true-ish')
+
+        false_env = dict(
+            ENV_BOOL_LOWER='false',
+            ENV_BOOL_UPPER='FALSE',
+            ENV_BOOL_CAP='False',
+            ENV_BOOL_WACKY='FaLSe',
+            ENV_NOT_BOOL="falsish",
+        )
+
+        with self.with_env(**false_env):
+            self.assertEqual(TestConfiguration.ENV_BOOL_LOWER, False)
+            self.assertEqual(TestConfiguration.ENV_BOOL_UPPER, False)
+            self.assertEqual(TestConfiguration.ENV_BOOL_CAP, False)
+            self.assertEqual(TestConfiguration.ENV_BOOL_WACKY, False)
+            self.assertEqual(TestConfiguration.ENV_NOT_BOOL, 'falsish')
 
     def test_parsing_float(self):
         """A test to ensure that we properly parse floats"""
+
+        class TestConfiguration(metaclass=MetaConfig):
+            # DEV: Set `env_load_all=True` to keep from having to make default values for each variable
+            ENV_LOAD_ALL = True
+            # Annotation should force type coercion to float
+            DEFINED_ANNOTATED_FLOAT_FLOAT_STRING: float = 0.0
+            DEFINED_ANNOTATED_FLOAT_INT_STRING: float = 0.0
+            # Annotation should force type coercion to str
+            DEFINED_ANNOTATED_STRING_FLOAT_STRING: str = "0.0"
+            # Type coercion should default based on value (Same behaviour as undefined values loaded from env)
+            DEFINED_UNANNOTATED = None
+
         env = dict(
-            IS_FLOAT='12.5',
-            TRAILING_DOT='12.',
-            LEADING_DOT='.12',
-            IS_NOT_FLOAT='This is 6.5',
+            ENV_FLOAT='12.5',
+            ENV_ZERO_FLOAT='0.0',
+            ENV_NEGATIVE_FLOAT='-13.4',
+            ENV_TRAILING_DOT_FLOAT='12.',
+            ENV_LEADING_DOT_FLOAT='.12',
+            ENV_NOT_FLOAT='This is 6.5',
         )
         with self.with_env(**env):
-            # DEV: Set `env_load_all=True` to keep from having to make default values for each variable
-            TestConfiguration = self._get_test_configuration(env_load_all=True)
-            self.assertEqual(TestConfiguration.IS_FLOAT, 12.5)
-            self.assertEqual(TestConfiguration.TRAILING_DOT, 12.0)
-            self.assertEqual(TestConfiguration.LEADING_DOT, 0.12)
-            self.assertEqual(TestConfiguration.IS_NOT_FLOAT, 'This is 6.5')
+            self.assertEqual(TestConfiguration.ENV_FLOAT, 12.5)
+            self.assertEqual(TestConfiguration.ENV_ZERO_FLOAT, 0.0)
+            self.assertEqual(TestConfiguration.ENV_NEGATIVE_FLOAT, -13.4)
+            self.assertEqual(TestConfiguration.ENV_TRAILING_DOT_FLOAT, 12.0)
+            self.assertEqual(TestConfiguration.ENV_LEADING_DOT_FLOAT, 0.12)
+            self.assertEqual(TestConfiguration.ENV_NOT_FLOAT, 'This is 6.5')
 
     def test_parsing_int(self):
         """A test to ensure that we properly parse integers"""
+
+        class TestConfiguration(metaclass=MetaConfig):
+            # DEV: Set `env_load_all=True` to keep from having to make default values for each variable
+            ENV_LOAD_ALL = True
+            # Annotation should force type coercion to float
+            DEFINED_ANNOTATED_INT_INT_STRING: int = 0
+            DEFINED_ANNOTATED_INT_FLOAT_STRING: int = 0
+            # Annotation should force type coercion to str
+            DEFINED_ANNOTATED_STRING_INT_STRING: str = "0"
+            # Type coercion should default based on value (Same behaviour as undefined values loaded from env)
+            DEFINED_UNANNOTATED = None
+
         env = dict(
-            IS_INT='12',
-            IS_ZERO='0',
-            IS_NOT_INT='12fa',
+            ENV_INT='12',
+            ENV_ZERO_INT='0',
+            ENV_NEGATIVE_INT="-12",
+            ENV_NOT_INT='12fa',
         )
         with self.with_env(**env):
-            # DEV: Set `env_load_all=True` to keep from having to make default values for each variable
-            TestConfiguration = self._get_test_configuration(env_load_all=True)
-            self.assertEqual(TestConfiguration.IS_INT, 12)
-            self.assertEqual(TestConfiguration.IS_ZERO, 0)
-            self.assertEqual(TestConfiguration.IS_NOT_INT, '12fa')
+            self.assertEqual(TestConfiguration.ENV_INT, 12)
+            self.assertEqual(TestConfiguration.ENV_ZERO_INT, 0)
+            self.assertEqual(TestConfiguration.ENV_NEGATIVE_INT, -12)
+            self.assertEqual(TestConfiguration.ENV_NOT_INT, '12fa')
 
     def test_parsing_version_string(self):
-        """A test to ensure that we properly parse integers"""
+        """A test to ensure that we properly parse version strings as strings"""
         env = dict(VERSION_STRING='1.0.2')
         with self.with_env(**env):
             # DEV: Set `env_load_all=True` to keep from having to make default values for each variable
