@@ -120,9 +120,9 @@ class MetaConfig(type):
             value = coerce_func(value)
         elif value.lower() in ('true', 'false'):
             value = True if value.lower() == 'true' else False
-        elif value.count('.') == 1 and ''.join(filter(lambda x: x != '.', value)).isdigit():
+        elif value.count('.') == 1 and ''.join(filter(lambda x: x not in ['.', '-'], value)).isdigit():
             value = float(value)
-        elif value.isdigit():
+        elif value.lstrip('-').isdigit():
             value = int(value)
 
         return value
