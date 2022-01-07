@@ -63,6 +63,8 @@ class TestEnv(unittest.TestCase):
         self.assertIs(TestConfiguration.BOOL_SETTING, True)
         with self.assertRaises(RuntimeError):
             TestConfiguration.NO_DEFAULT_SETTING
+        with self.assertRaises(RuntimeError):
+            TestConfiguration["NO_DEFAULT_SETTING"]
 
     def test_invalid_setter(self):
         """users should not be able to set variables using attributes"""
