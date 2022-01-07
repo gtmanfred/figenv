@@ -11,7 +11,7 @@ updates from environment variables.
 import json
 import os
 
-_MISSING = object()
+_MISSING = type("MISSING", (object,), {"__repr__": lambda self: "<MISSING CONFIGURATION>"})()
 
 
 def _check_special_names(name):
@@ -34,6 +34,8 @@ class MetaConfig(type):
                 continue
             cls._dict.update(base._dict)
         cls._dict.update(dict)
+        for annotation_name in dict.get("__annotations__", {}):
+            cls._dict.setdefault(annotation_name, _MISSING)
 
     def __getattribute__(cls, name):
         """
@@ -97,7 +99,7 @@ class MetaConfig(type):
         if (not load_all and name not in cls._dict) or (name not in cls._dict and prefix + name not in os.environ):
             raise AttributeError(f"type object {cls.name} has no attribute '{name}'")
 
-        value = cls._dict.get(name, None)
+        value = cls._dict.get(name, _MISSING)
 
         override_via_environment = True
         if callable(value) and getattr(value, "_strict", False):
@@ -105,6 +107,10 @@ class MetaConfig(type):
 
         if override_via_environment and prefix + name in os.environ:
             value = os.environ[prefix + name]
+
+        if value == _MISSING:
+            # Configuration with no default and no value in the environment
+            raise RuntimeError(f"Configuration '{name}' is not present in environment and has no default")
 
         if callable(value):
             value = value(cls)
