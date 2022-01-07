@@ -5,7 +5,7 @@ import unittest
 
 import xmlrunner
 
-from figenv import MetaConfig, strict
+from figenv import MetaConfig, strict, MissingConfigurationException, _MISSING
 
 
 class TestEnv(unittest.TestCase):
@@ -255,6 +255,24 @@ class TestEnv(unittest.TestCase):
             TestConfiguration = self._get_test_configuration(DATA='hello', GREETING=func)
             assert 'GREETING' in dir(TestConfiguration)
             self.assertEqual(TestConfiguration.GREETING, 'hello world')
+
+
+class TestMissing(unittest.TestCase):
+    """Pointless tests for code coverage"""
+
+    def test_representation(self):
+        value = _MISSING
+        self.assertEqual(str(value), "<MISSING CONFIGURATION>")
+
+    def test_exception_default(self):
+        exception = MissingConfigurationException("MY_VALUE")
+        self.assertEqual(exception.name, "MY_VALUE")
+        self.assertEqual(str(exception), "Configuration 'MY_VALUE' is not present in environment")
+
+    def test_exception_custom_message(self):
+        exception = MissingConfigurationException("MY_VALUE", "Invalid Configuration! Please provide MY_VALUE.")
+        self.assertEqual(exception.name, "MY_VALUE")
+        self.assertEqual(str(exception), "Invalid Configuration! Please provide MY_VALUE.")
 
 
 if __name__ == '__main__':
