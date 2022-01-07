@@ -79,6 +79,9 @@ class MetaConfig(type):
     def _to_dict(cls, value):
         return json.loads(value)
 
+    def _to_list(cls, value):
+        return json.loads(value)
+
     def _get_coerce_function(cls, value, annotation=None):
         if not isinstance(value, str):
             return None
