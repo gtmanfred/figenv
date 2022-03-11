@@ -8,7 +8,9 @@ updates from environment variables.
         USERNAME = 'fake'
         DEBUG = False
 """
-from typing import Callable, Any
+from typing import Any
+from typing import Callable
+from typing import cast
 import json
 import os
 
@@ -148,9 +150,11 @@ class MetaConfig(type):
             raise MissingConfigurationException(name)
 
         if callable(value):
+            annotation = getattr(value, '__annotations__', {}).get('return', None)
             value = value(cls)
+        else:
+            annotation = getattr(cls, '__annotations__', {}).get(name, None)
 
-        annotation = getattr(cls, '__annotations__', {}).get(name, None)
         coerce_func: Callable[[str], Any] = cls._get_coerce_function(value, annotation)
 
         if coerce_func is not None:
