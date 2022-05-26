@@ -379,6 +379,10 @@ class TestEnv(unittest.TestCase):
             self.assertEqual(TestConfiguration.GREETING, 'hola mundo')
             self.assertEqual(TestConfiguration.ACCOUNT_ID, '123456')
 
+        with self.with_env(GREETING='hola mundo', ACCOUNT_ID='123'):
+            TestConfiguration = self._get_test_configuration(DATA='hello', GREETING=func, ACCOUNT_ID=func_num)
+            self.assertEqual(TestConfiguration.ACCOUNT_ID, '123')
+
     def test_strict_functions(self):
         """A test to ensure that strict functions are NOT overridden with environment values"""
 
