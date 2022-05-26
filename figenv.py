@@ -136,10 +136,10 @@ class MetaConfig(type):
         if (not load_all and name not in cls._dict) or (name not in cls._dict and prefix + name not in os.environ):
             raise AttributeError(f"type object {cls.name} has no attribute '{name}'")
 
-        value = cls._dict.get(name, _MISSING)
+        value = func = cls._dict.get(name, _MISSING)
 
         override_via_environment = True
-        if callable(value) and getattr(value, "_strict", False):
+        if callable(value) and getattr(func, "_strict", False):
             override_via_environment = False
 
         if override_via_environment and prefix + name in os.environ:
@@ -153,7 +153,9 @@ class MetaConfig(type):
             annotation = getattr(value, '__annotations__', {}).get('return', None)
             value = value(cls)
         else:
-            annotation = getattr(cls, '__annotations__', {}).get(name, None)
+            annotation = getattr(func, '__annotations__', {}).get('return', None)
+            if annotation is None:
+                annotation = getattr(cls, '__annotations__', {}).get(name, None)
 
         coerce_func: Callable[[str], Any] = cls._get_coerce_function(value, annotation)
 
