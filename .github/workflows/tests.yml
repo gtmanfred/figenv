@@ -33,6 +33,7 @@ jobs:
     - name: Codecov.io
       uses: codecov/codecov-action@main
       with:
+        token: ${{ secrets.CODECOV_TOKEN }}
         file: ./coverage.xml
         flags: unittests
         fail_ci_if_error: true
