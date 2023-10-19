@@ -61,6 +61,13 @@ class MetaConfig(type):
     def keys(cls):
         return dir(cls)
 
+    def __contains__(cls, name):
+        try:
+            getattr(cls, name)
+        except (MissingConfigurationException, AttributeError):
+            return False
+        return True
+
     def __dir__(cls):
         return [key for key, _ in cls._dict.items() if key.isupper()]
 

@@ -50,6 +50,9 @@ class TestEnv(unittest.TestCase):
             with self.assertRaises(AttributeError):
                 TestConfiguration.WHAT
 
+            assert "WHAT" not in TestConfiguration
+            assert "TEST_SETTING" in TestConfiguration
+
         self.assertEqual(TestConfiguration.DEFAULT_SETTING, 'set_in_class')
 
     def test_default_settings(self):
