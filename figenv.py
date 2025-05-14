@@ -11,8 +11,15 @@ updates from environment variables.
 from typing import Any
 from typing import Callable
 from typing import cast
+from typing import get_args
+from typing import get_origin
 import json
 import os
+
+try:
+    from types import NoneType
+except ImportError:
+    NoneType = type(None)
 
 _MISSING = type("MISSING", (object,), {"__repr__": lambda self: "<MISSING CONFIGURATION>"})()
 
@@ -106,7 +113,10 @@ class MetaConfig(type):
             return None
 
         if annotation is not None:
-            annoname = getattr(annotation, '_name', getattr(annotation, '__name__', None))
+            for arg in get_args(annotation) or [annotation,]:
+                if arg is NoneType:
+                    continue
+                annoname = getattr(arg, "__name__", None) or get_origin(arg).__name__
             coerce_func = getattr(annotation, '_coerce', getattr(cls, f'_to_{annoname.lower()}', None))
             # DEV: It may be more user friendly to raise an error here if we could not find a coercion method
         else:

@@ -5,6 +5,7 @@ import unittest
 
 import xmlrunner
 
+
 from figenv import MetaConfig, strict, MissingConfigurationException, _MISSING
 
 
@@ -316,6 +317,17 @@ class TestEnv(unittest.TestCase):
 
         with self.with_env(MY_LIST='[true, 1, 7.4, "hello", "\\"Never Give Up, Never Surrender\\""]'):
             self.assertListEqual(TestingConfig.MY_LIST, [True, 1, 7.4, "hello", "\"Never Give Up, Never Surrender\""])
+
+    def test_parsing_optional(self):
+        """A test to ensure we properly parse lists"""
+
+        class TestingConfig(metaclass=MetaConfig):
+            MY_LIST: typing.Optional[list] = None
+
+        self.assertEqual(TestingConfig.MY_LIST, None)
+        with self.with_env(MY_LIST='[true, 1, 7.4, "hello", "\\"Never Give Up, Never Surrender\\""]'):
+            self.assertListEqual(TestingConfig.MY_LIST, [True, 1, 7.4, "hello", "\"Never Give Up, Never Surrender\""])
+
 
     def test_parsing_version_string(self):
         """A test to ensure that we properly parse version strings as strings"""
