@@ -86,6 +86,7 @@ class TestEnv(unittest.TestCase):
 
         class TestConfiguration(metaclass=MetaConfig):
             DEFAULT_SETTING: csv = 'default,value'
+            OPTIONAL_SETTING: typing.Optional[csv] = 'default,value'
             BOOL_SETTING: bool = '1'
             FALSE_SETTING: bool = '0'
             INT_SETTING: int = '1093'
@@ -94,6 +95,7 @@ class TestEnv(unittest.TestCase):
             NO_DEFAULT_SETTING: int
 
         self.assertEqual(TestConfiguration.DEFAULT_SETTING, ['default', 'value'])
+        self.assertEqual(TestConfiguration.OPTIONAL_SETTING, ['default', 'value'])
         self.assertIs(TestConfiguration.BOOL_SETTING, True)
         self.assertIs(TestConfiguration.FALSE_SETTING, False)
         self.assertEqual(TestConfiguration.INT_SETTING, 1093)

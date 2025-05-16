@@ -117,7 +117,7 @@ class MetaConfig(type):
                 if arg is NoneType:
                     continue
                 annoname = getattr(arg, "__name__", None) or get_origin(arg).__name__
-            coerce_func = getattr(annotation, '_coerce', getattr(cls, f'_to_{annoname.lower()}', None))
+                coerce_func = getattr(arg, '_coerce', getattr(cls, f'_to_{annoname.lower()}', None))
             # DEV: It may be more user friendly to raise an error here if we could not find a coercion method
         else:
             # Guess the correct coerce function
