@@ -6,6 +6,7 @@ import unittest
 import xmlrunner
 
 
+import figenv
 from figenv import MetaConfig, strict, MissingConfigurationException, _MISSING
 
 
@@ -69,6 +70,44 @@ class TestEnv(unittest.TestCase):
             TestConfiguration.NO_DEFAULT_SETTING
         with self.assertRaises(RuntimeError):
             TestConfiguration["NO_DEFAULT_SETTING"]
+
+    def test_env_file_settings(self):
+        """Test that if the env file is set, settings get loaded from it."""
+        TestConfiguration = self._get_test_configuration(
+            ENV_FILE="files/test.json",
+            FOO='no',
+            BAR='yes',
+            BAZ=True,
+        )
+        self.assertEqual(TestConfiguration.FOO, 'eggs')
+        self.assertEqual(TestConfiguration.BAR, 'spam')
+        self.assertEqual(TestConfiguration.BAZ, False)
+
+    def test_env_file_settings_json(self):
+        """Test that if the env file is set, settings get loaded from it."""
+        figenv.yaml = None
+        TestConfiguration = self._get_test_configuration(
+            ENV_FILE="files/test.json",
+            FOO='no',
+            BAR='yes',
+            BAZ=True,
+        )
+        self.assertEqual(TestConfiguration.FOO, 'eggs')
+        self.assertEqual(TestConfiguration.BAR, 'spam')
+        self.assertEqual(TestConfiguration.BAZ, False)
+
+    def test_env_file_settings_missing_file(self):
+        """Test that if the env file is set, but file is missing, defaults are used"""
+        figenv.yaml = None
+        TestConfiguration = self._get_test_configuration(
+            ENV_FILE="files/missing.json",
+            FOO='no',
+            BAR='yes',
+            BAZ=True,
+        )
+        self.assertEqual(TestConfiguration.FOO, 'no')
+        self.assertEqual(TestConfiguration.BAR, 'yes')
+        self.assertEqual(TestConfiguration.BAZ, True)
 
     def test_invalid_setter(self):
         """users should not be able to set variables using attributes"""

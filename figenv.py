@@ -21,6 +21,11 @@ try:
 except ImportError:
     NoneType = type(None)
 
+try:
+    import yaml
+except ImportError:
+    yaml = None
+
 _MISSING = type("MISSING", (object,), {"__repr__": lambda self: "<MISSING CONFIGURATION>"})()
 
 
@@ -33,7 +38,7 @@ class MissingConfigurationException(RuntimeError):
 
 
 def _check_special_names(name):
-    return name in ('name', 'keys') or name.startswith('_')
+    return name in ('name', 'keys', 'environ') or name.startswith('_')
 
 
 def strict(f):
@@ -46,6 +51,16 @@ class MetaConfig(type):
     def __init__(cls, name, bases, dict):
         super().__init__(name, bases, dict)
         cls.name = name
+        cls.environ = os.environ
+        if "ENV_FILE" in dict:
+            if os.path.exists(dict["ENV_FILE"]):
+                with open(dict["ENV_FILE"]) as fh_:
+                    if yaml is not None:
+                        cls.environ = yaml.safe_load(fh_)
+                    else:
+                        cls.environ = json.load(fh_)
+            else:
+                print(f"Failed to load env_file: {dict['ENV_FILE']}")
         cls._dict = {}
         for base in bases:
             if not hasattr(base, '_dict'):
@@ -150,7 +165,7 @@ class MetaConfig(type):
         prefix = cls._dict.get('ENV_PREFIX', '')
         load_all = cls._dict.get('ENV_LOAD_ALL', False)
 
-        if (not load_all and name not in cls._dict) or (name not in cls._dict and prefix + name not in os.environ):
+        if (not load_all and name not in cls._dict) or (name not in cls._dict and prefix + name not in cls.environ):
             raise AttributeError(f"type object {cls.name} has no attribute '{name}'")
 
         value = func = cls._dict.get(name, _MISSING)
@@ -159,8 +174,8 @@ class MetaConfig(type):
         if callable(value) and getattr(func, "_strict", False):
             override_via_environment = False
 
-        if override_via_environment and prefix + name in os.environ:
-            value = os.environ[prefix + name]
+        if override_via_environment and prefix + name in cls.environ:
+            value = cls.environ[prefix + name]
 
         if value is _MISSING:
             # Configuration with no default and no value in the environment

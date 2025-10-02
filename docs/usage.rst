@@ -205,3 +205,34 @@ config object, you can specify the ENV_PREFIX attribute.
     >>> os.environ['FIGENV_USER'] = 'newuser'
     >>> Config.USER
     'newuser'
+
+Environment Files
+-----------------
+
+Some containerized runtimes use file mounts as a more secure access pattern for
+storing secrets. Figenv supports loading overrides for the config objects from
+those files. By default, it supports loading ``json`` data but if the ``yaml``
+extra is installed, then yaml environment files can be used.
+
+.. code-block:: yaml
+
+    # env.yaml
+    FOO: "eggs"
+    BAR: "spam"
+    BAZ: false
+
+.. code-block:: python
+
+    >>> import figenv
+    >>> class Config(metaclass=figenv.MetaConfig):
+    ...     ENV_FILE="files/test.json"
+    ...     FOO = "tofu"
+    ...     BAR = "tofurkey"
+    ...     BAZ = True
+    ...
+    >>> Config.FOO
+    'eggs'
+    >>> Config.BAR
+    'spam'
+    >>> Config.BAZ
+    False
