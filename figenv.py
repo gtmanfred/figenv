@@ -22,6 +22,11 @@ except ImportError:
     NoneType = type(None)
 
 try:
+    import annotationlib
+except ImportError:
+    annotationlib = None
+
+try:
     import yaml
 except ImportError:
     yaml = None
@@ -39,6 +44,17 @@ class MissingConfigurationException(RuntimeError):
 
 def _check_special_names(name):
     return name in ('name', 'keys', 'environ') or name.startswith('_')
+
+
+def _get_annotations(cls, namespace):
+    """Return annotations defined directly on ``cls``
+
+    Python 3.14+ (PEP 649) evaluates class annotations lazily, so they are no
+    longer present in the class namespace as ``__annotations__``.
+    """
+    if annotationlib is not None:
+        return annotationlib.get_annotations(cls, format=annotationlib.Format.FORWARDREF)
+    return namespace.get("__annotations__", {})
 
 
 def strict(f):
@@ -67,7 +83,8 @@ class MetaConfig(type):
                 continue
             cls._dict.update(base._dict)
         cls._dict.update(dict)
-        for annotation_name in dict.get("__annotations__", {}):
+        cls._annotations = _get_annotations(cls, dict)
+        for annotation_name in cls._annotations:
             cls._dict.setdefault(annotation_name, _MISSING)
 
     def __getattribute__(cls, name):
@@ -187,7 +204,7 @@ class MetaConfig(type):
         else:
             annotation = getattr(func, '__annotations__', {}).get('return', None)
             if annotation is None:
-                annotation = getattr(cls, '__annotations__', {}).get(name, None)
+                annotation = cls._annotations.get(name, None)
 
         coerce_func: Callable[[str], Any] = cls._get_coerce_function(value, annotation)
 

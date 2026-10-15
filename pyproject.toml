@@ -1,6 +1,6 @@
 [tool.black]
 line-length = 119
-target-version = ['py36', 'py37', 'py38']
+target-version = ['py314', 'py313', 'py312', 'py315']
 skip-string-normalization = true
 
 [tool.coverage.run]
